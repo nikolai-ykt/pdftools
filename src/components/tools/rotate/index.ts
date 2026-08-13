@@ -5,3 +5,4 @@
 
 export { RotatePDFTool } from './RotatePDFTool';
 export type { RotatePDFToolProps } from './RotatePDFTool';
+export type { PagePreview, CalibrationTab } from './types';
