@@ -30,144 +30,17 @@ const loadPdfjsLib = async () => {
   return pdfjsLib;
 };
 
-export interface FormCreatorToolProps {
-  className?: string;
-}
+import {
+  FormCreatorToolProps,
+  FieldType,
+  VisualField,
+  FormTemplate,
+  SavedProject,
+} from './types';
+import { formTemplates } from './templates';
+import { BlankPdfModal, PageSizeType } from './components/BlankPdfModal';
+import { FormTemplatesModal } from './components/FormTemplatesModal';
 
-type FieldType = 'text' | 'checkbox' | 'dropdown' | 'radio' | 'button' | 'signature' | 'date' | 'listbox';
-
-interface VisualField extends FormField {
-  id: string;
-  selected?: boolean;
-}
-
-// Template definitions
-interface FormTemplate {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  fields: Omit<VisualField, 'id'>[];
-}
-
-const formTemplates: FormTemplate[] = [
-  {
-    id: 'contact',
-    name: 'Contact Form',
-    description: 'Basic contact form with name, email, and message fields',
-    icon: '📧',
-    fields: [
-      { name: 'full_name', type: 'text', x: 50, y: 700, width: 200, height: 24, pageNumber: 1, label: 'Full Name' },
-      { name: 'email', type: 'text', x: 50, y: 650, width: 200, height: 24, pageNumber: 1, label: 'Email Address' },
-      { name: 'phone', type: 'text', x: 50, y: 600, width: 200, height: 24, pageNumber: 1, label: 'Phone Number' },
-      { name: 'subject', type: 'dropdown', x: 50, y: 550, width: 200, height: 24, pageNumber: 1, options: ['General Inquiry', 'Support', 'Feedback', 'Other'], label: 'Subject' },
-      { name: 'message', type: 'text', x: 50, y: 450, width: 400, height: 80, pageNumber: 1, multiline: true, label: 'Message' },
-      { name: 'submit', type: 'button', x: 50, y: 380, width: 100, height: 30, pageNumber: 1, buttonLabel: 'Submit' },
-    ],
-  },
-  {
-    id: 'registration',
-    name: 'Registration Form',
-    description: 'User registration form with account details',
-    icon: '📝',
-    fields: [
-      { name: 'first_name', type: 'text', x: 50, y: 700, width: 150, height: 24, pageNumber: 1, label: 'First Name' },
-      { name: 'last_name', type: 'text', x: 220, y: 700, width: 150, height: 24, pageNumber: 1, label: 'Last Name' },
-      { name: 'email', type: 'text', x: 50, y: 650, width: 320, height: 24, pageNumber: 1, label: 'Email Address' },
-      { name: 'date_of_birth', type: 'date', x: 50, y: 600, width: 150, height: 24, pageNumber: 1, label: 'Date of Birth' },
-      { name: 'gender', type: 'dropdown', x: 220, y: 600, width: 150, height: 24, pageNumber: 1, options: ['Male', 'Female', 'Other', 'Prefer not to say'], label: 'Gender' },
-      { name: 'terms_accepted', type: 'checkbox', x: 50, y: 550, width: 20, height: 20, pageNumber: 1, label: 'I accept the terms and conditions', labelPosition: 'left' },
-      { name: 'newsletter', type: 'checkbox', x: 50, y: 520, width: 20, height: 20, pageNumber: 1, label: 'Subscribe to newsletter', labelPosition: 'left' },
-      { name: 'register', type: 'button', x: 50, y: 460, width: 120, height: 30, pageNumber: 1, buttonLabel: 'Register' },
-    ],
-  },
-  {
-    id: 'feedback',
-    name: 'Feedback Form',
-    description: 'Customer feedback and survey form',
-    icon: '⭐',
-    fields: [
-      { name: 'customer_name', type: 'text', x: 50, y: 700, width: 200, height: 24, pageNumber: 1, label: 'Your Name' },
-      { name: 'satisfaction', type: 'dropdown', x: 50, y: 650, width: 200, height: 24, pageNumber: 1, options: ['Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied'], label: 'Satisfaction Level' },
-      { name: 'recommend', type: 'radio', x: 50, y: 600, width: 150, height: 24, pageNumber: 1, options: ['Yes', 'No', 'Maybe'], label: 'Would you recommend us?' },
-      { name: 'comments', type: 'text', x: 50, y: 500, width: 400, height: 80, pageNumber: 1, multiline: true, label: 'Comments' },
-      { name: 'submit_date', type: 'date', x: 50, y: 420, width: 150, height: 24, pageNumber: 1, label: 'Date' },
-      { name: 'submit', type: 'button', x: 50, y: 360, width: 100, height: 30, pageNumber: 1, buttonLabel: 'Submit' },
-    ],
-  },
-  {
-    id: 'order',
-    name: 'Order Form',
-    description: 'Product order form with quantities',
-    icon: '🛒',
-    fields: [
-      { name: 'customer_name', type: 'text', x: 50, y: 720, width: 200, height: 24, pageNumber: 1, label: 'Customer Name' },
-      { name: 'company', type: 'text', x: 280, y: 720, width: 200, height: 24, pageNumber: 1, label: 'Company' },
-      { name: 'address', type: 'text', x: 50, y: 670, width: 430, height: 24, pageNumber: 1, label: 'Address' },
-      { name: 'city', type: 'text', x: 50, y: 630, width: 150, height: 24, pageNumber: 1, label: 'City' },
-      { name: 'postal_code', type: 'text', x: 220, y: 630, width: 100, height: 24, pageNumber: 1, label: 'Postal Code' },
-      { name: 'country', type: 'dropdown', x: 340, y: 630, width: 140, height: 24, pageNumber: 1, options: ['USA', 'Canada', 'UK', 'Germany', 'France', 'Other'], label: 'Country' },
-      { name: 'product', type: 'listbox', x: 50, y: 520, width: 200, height: 80, pageNumber: 1, options: ['Product A', 'Product B', 'Product C', 'Product D'], multiSelect: true, label: 'Select Products' },
-      { name: 'quantity', type: 'text', x: 280, y: 540, width: 80, height: 24, pageNumber: 1, label: 'Quantity' },
-      { name: 'rush_delivery', type: 'checkbox', x: 50, y: 420, width: 20, height: 20, pageNumber: 1, label: 'Rush Delivery', labelPosition: 'left' },
-      { name: 'order', type: 'button', x: 50, y: 360, width: 120, height: 30, pageNumber: 1, buttonLabel: 'Place Order' },
-    ],
-  },
-  {
-    id: 'consent',
-    name: 'Consent Form',
-    description: 'Legal consent form with signature',
-    icon: '✍️',
-    fields: [
-      { name: 'full_name', type: 'text', x: 50, y: 700, width: 250, height: 24, pageNumber: 1, label: 'Full Name' },
-      { name: 'date', type: 'date', x: 320, y: 700, width: 150, height: 24, pageNumber: 1, label: 'Date' },
-      { name: 'id_number', type: 'text', x: 50, y: 650, width: 200, height: 24, pageNumber: 1, label: 'ID Number' },
-      { name: 'consent_1', type: 'checkbox', x: 50, y: 580, width: 20, height: 20, pageNumber: 1, label: 'I agree to the terms of service', labelPosition: 'left' },
-      { name: 'consent_2', type: 'checkbox', x: 50, y: 540, width: 20, height: 20, pageNumber: 1, label: 'I agree to data processing', labelPosition: 'left' },
-      { name: 'consent_3', type: 'checkbox', x: 50, y: 500, width: 20, height: 20, pageNumber: 1, label: 'I am 18 years or older', labelPosition: 'left' },
-      { name: 'signature', type: 'signature', x: 50, y: 380, width: 250, height: 60, pageNumber: 1, signatureLabel: 'Sign here', label: 'Signature' },
-      { name: 'submit', type: 'button', x: 50, y: 300, width: 100, height: 30, pageNumber: 1, buttonLabel: 'Submit' },
-    ],
-  },
-  {
-    id: 'invoice',
-    name: 'Invoice',
-    description: 'Professional invoice with itemized billing',
-    icon: '🧾',
-    fields: [
-      // Header - Company info
-      { name: 'company_name', type: 'text', x: 50, y: 750, width: 200, height: 24, pageNumber: 1, label: 'Company Name' },
-      { name: 'company_address', type: 'text', x: 50, y: 720, width: 250, height: 24, pageNumber: 1, label: 'Company Address' },
-      { name: 'company_phone', type: 'text', x: 50, y: 690, width: 150, height: 24, pageNumber: 1, label: 'Phone' },
-      { name: 'company_email', type: 'text', x: 220, y: 690, width: 180, height: 24, pageNumber: 1, label: 'Email' },
-      // Invoice details
-      { name: 'invoice_number', type: 'text', x: 400, y: 750, width: 120, height: 24, pageNumber: 1, label: 'Invoice #' },
-      { name: 'invoice_date', type: 'date', x: 400, y: 720, width: 120, height: 24, pageNumber: 1, label: 'Invoice Date' },
-      { name: 'due_date', type: 'date', x: 400, y: 690, width: 120, height: 24, pageNumber: 1, label: 'Due Date' },
-      // Bill to
-      { name: 'client_name', type: 'text', x: 50, y: 620, width: 200, height: 24, pageNumber: 1, label: 'Bill To' },
-      { name: 'client_address', type: 'text', x: 50, y: 590, width: 250, height: 24, pageNumber: 1, label: 'Client Address' },
-      { name: 'client_email', type: 'text', x: 50, y: 560, width: 200, height: 24, pageNumber: 1, label: 'Client Email' },
-      // Items (simplified - 3 rows)
-      { name: 'item_1_desc', type: 'text', x: 50, y: 480, width: 250, height: 24, pageNumber: 1, label: 'Item 1 Description' },
-      { name: 'item_1_qty', type: 'text', x: 320, y: 480, width: 60, height: 24, pageNumber: 1, label: 'Qty' },
-      { name: 'item_1_price', type: 'text', x: 400, y: 480, width: 80, height: 24, pageNumber: 1, label: 'Price' },
-      { name: 'item_2_desc', type: 'text', x: 50, y: 450, width: 250, height: 24, pageNumber: 1, label: 'Item 2 Description' },
-      { name: 'item_2_qty', type: 'text', x: 320, y: 450, width: 60, height: 24, pageNumber: 1, label: 'Qty' },
-      { name: 'item_2_price', type: 'text', x: 400, y: 450, width: 80, height: 24, pageNumber: 1, label: 'Price' },
-      { name: 'item_3_desc', type: 'text', x: 50, y: 420, width: 250, height: 24, pageNumber: 1, label: 'Item 3 Description' },
-      { name: 'item_3_qty', type: 'text', x: 320, y: 420, width: 60, height: 24, pageNumber: 1, label: 'Qty' },
-      { name: 'item_3_price', type: 'text', x: 400, y: 420, width: 80, height: 24, pageNumber: 1, label: 'Price' },
-      // Totals
-      { name: 'subtotal', type: 'text', x: 400, y: 360, width: 80, height: 24, pageNumber: 1, label: 'Subtotal' },
-      { name: 'tax', type: 'text', x: 400, y: 330, width: 80, height: 24, pageNumber: 1, label: 'Tax' },
-      { name: 'total', type: 'text', x: 400, y: 300, width: 80, height: 24, pageNumber: 1, label: 'Total' },
-      // Payment
-      { name: 'payment_method', type: 'dropdown', x: 50, y: 250, width: 150, height: 24, pageNumber: 1, options: ['Bank Transfer', 'Credit Card', 'PayPal', 'Check', 'Cash'], label: 'Payment Method' },
-      { name: 'notes', type: 'text', x: 50, y: 180, width: 430, height: 50, pageNumber: 1, multiline: true, label: 'Notes' },
-    ],
-  },
-];
 
 export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
   const t = useTranslations('common');
@@ -1728,73 +1601,30 @@ export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
         </div>
       )}
 
+      {/* Form Templates Modal */}
+      <FormTemplatesModal
+        isOpen={showTemplateDialog}
+        onClose={() => setShowTemplateDialog(false)}
+        onSelectTemplate={createFromTemplate}
+        templates={formTemplates}
+        tTools={tTools}
+      />
+
       {/* Create Blank PDF Dialog */}
-      {showBlankPdfDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <Card variant="outlined" size="lg" className="w-full max-w-md mx-4 bg-white shadow-xl">
-            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
-              <FilePlus2 className="w-5 h-5 text-blue-500" />
-              {tTools('formCreator.createBlankPdfTitle') || 'Create Blank PDF'}
-            </h3>
-            <div className="space-y-4">
-              {/* Page Size */}
-              <div>
-                <label className="block text-sm font-medium mb-1">{tTools('formCreator.pageSize') || 'Page Size'}</label>
-                <select
-                  value={blankPdfPageSize}
-                  onChange={(e) => setBlankPdfPageSize(e.target.value as 'A4' | 'Letter' | 'Legal' | 'A3' | 'A5')}
-                  className="w-full px-3 py-2 border rounded-[var(--radius-md)] text-sm"
-                >
-                  <option value="A4">A4 (210 × 297 mm)</option>
-                  <option value="Letter">Letter (8.5 × 11 in)</option>
-                  <option value="Legal">Legal (8.5 × 14 in)</option>
-                  <option value="A3">A3 (297 × 420 mm)</option>
-                  <option value="A5">A5 (148 × 210 mm)</option>
-                </select>
-              </div>
-
-              {/* Page Count */}
-              <div>
-                <label className="block text-sm font-medium mb-1">{tTools('formCreator.pageCount') || 'Number of Pages'}</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={blankPdfPageCount}
-                  onChange={(e) => setBlankPdfPageCount(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
-                  className="w-full px-3 py-2 border rounded-[var(--radius-md)] text-sm"
-                />
-              </div>
-
-              <div className="text-xs text-gray-500">
-                <p>{tTools('formCreator.blankPdfNote') || 'A blank PDF will be created for you to add form fields.'}</p>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowBlankPdfDialog(false);
-                    setBlankPdfPageSize('A4');
-                    setBlankPdfPageCount(1);
-                  }}
-                >
-                  {tTools('formCreator.cancelButton') || 'Cancel'}
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={createBlankPdf}
-                >
-                  <FilePlus2 className="w-4 h-4 mr-2" />
-                  {tTools('formCreator.createButton') || 'Create'}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      <BlankPdfModal
+        isOpen={showBlankPdfDialog}
+        pageSize={blankPdfPageSize as PageSizeType}
+        setPageSize={(size) => setBlankPdfPageSize(size)}
+        pageCount={blankPdfPageCount}
+        setPageCount={setBlankPdfPageCount}
+        onClose={() => {
+          setShowBlankPdfDialog(false);
+          setBlankPdfPageSize('A4');
+          setBlankPdfPageCount(1);
+        }}
+        onCreate={createBlankPdf}
+        tTools={tTools}
+      />
     </div>
   );
 }
