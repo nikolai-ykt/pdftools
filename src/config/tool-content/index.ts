@@ -16,6 +16,7 @@ export { toolContentAr } from './ar';
 export { toolContentIt } from './it';
 export { toolContentId } from './id';
 export { toolContentVn } from './vi';
+export { toolContentEn as toolContentRu } from './en';
 
 import { toolContentEn } from './en';
 import { toolContentJa } from './ja';
@@ -32,7 +33,7 @@ import { toolContentId } from './id';
 import { toolContentVn } from './vi';
 import { ToolContent } from '@/types/tool';
 
-export type Locale = 'en' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'zh' | 'zh-TW' | 'pt' | 'ar' | 'it' | 'id' | 'vi' | 'ro';
+export type Locale = 'en' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'zh' | 'zh-TW' | 'pt' | 'ar' | 'it' | 'id' | 'vi' | 'ro' | 'ru';
 
 /**
  * Get tool content for a specific locale
@@ -56,6 +57,7 @@ export function getToolContent(locale: Locale, toolId: string): ToolContent | un
     id: toolContentId,
     vi: toolContentVn,
     ro: toolContentEn, // Fallback to English for Romanian tool content for now
+    ru: toolContentEn, // Fallback to English for Russian tool content for now
   };
 
   const localeContent = contentMap[locale];
