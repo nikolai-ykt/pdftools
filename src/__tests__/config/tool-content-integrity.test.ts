@@ -11,6 +11,14 @@ describe('tool content integrity', () => {
     expect(missingTools).toEqual([]);
   });
 
+  it('provides Russian content for every configured tool', () => {
+    const missingTools = getAllTools()
+      .map((tool) => tool.id)
+      .filter((toolId) => !getToolContent('ru', toolId));
+
+    expect(missingTools).toEqual([]);
+  });
+
   it('keeps Chinese tool titles localized instead of falling back to English slugs', () => {
     expect(getToolContent('zh', 'merge-pdf')?.title).toBe('合并PDF');
     expect(getToolContent('zh', 'split-pdf')?.title).toBe('拆分PDF');
@@ -18,5 +26,14 @@ describe('tool content integrity', () => {
     expect(getToolContent('zh', 'edit-pdf')?.title).toBe('编辑PDF');
     expect(getToolContent('zh', 'organize-pdf')?.title).toBe('整理PDF');
     expect(getToolContent('zh', 'pdf-to-docx')?.title).toBe('PDF转Word');
+  });
+
+  it('keeps Russian tool titles localized instead of falling back to English slugs', () => {
+    expect(getToolContent('ru', 'merge-pdf')?.title).toBe('Объединить PDF');
+    expect(getToolContent('ru', 'split-pdf')?.title).toBe('Разделить PDF');
+    expect(getToolContent('ru', 'compress-pdf')?.title).toBe('Сжать PDF');
+    expect(getToolContent('ru', 'edit-pdf')?.title).toBe('Редактировать PDF');
+    expect(getToolContent('ru', 'organize-pdf')?.title).toBe('Упорядочить PDF');
+    expect(getToolContent('ru', 'pdf-to-docx')?.title).toBe('PDF в Word');
   });
 });
