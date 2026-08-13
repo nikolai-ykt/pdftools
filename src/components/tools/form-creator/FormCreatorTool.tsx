@@ -40,6 +40,17 @@ import {
 import { formTemplates } from './templates';
 import { BlankPdfModal, PageSizeType } from './components/BlankPdfModal';
 import { FormTemplatesModal } from './components/FormTemplatesModal';
+import {
+  generateId,
+  getFieldIcon,
+  getFieldStyle,
+  formatSize,
+  formatDate,
+  alignFields,
+  TOOL_ITEMS,
+  AlignmentType,
+} from './utils/formCreatorUtils';
+
 
 
 export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
@@ -113,8 +124,6 @@ export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
   const cancelledRef = useRef(false);
   const pdfDocRef = useRef<any>(null);
 
-  // Generate unique ID
-  const generateId = () => `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   // Load PDF
   const loadPdf = useCallback(async (pdfFile: File) => {
@@ -545,64 +554,17 @@ export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
   }, [fields, currentPage]);
 
   // Align selected fields
-  const handleAlignFields = useCallback((alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
-    const selectedIds = selectedFieldIds.size > 1 ? selectedFieldIds : (selectedFieldId ? new Set([selectedFieldId]) : new Set());
-    if (selectedIds.size < 2) return;
-
-    const selectedFields = fields.filter(f => selectedIds.has(f.id));
-    if (selectedFields.length < 2) return;
-
-    let alignValue: number;
-
-    switch (alignment) {
-      case 'left':
-        alignValue = Math.min(...selectedFields.map(f => f.x));
-        break;
-      case 'center':
-        const minX = Math.min(...selectedFields.map(f => f.x));
-        const maxX = Math.max(...selectedFields.map(f => f.x + f.width));
-        alignValue = (minX + maxX) / 2;
-        break;
-      case 'right':
-        alignValue = Math.max(...selectedFields.map(f => f.x + f.width));
-        break;
-      case 'top':
-        alignValue = Math.max(...selectedFields.map(f => f.y));
-        break;
-      case 'middle':
-        const minY = Math.min(...selectedFields.map(f => f.y - f.height));
-        const maxY = Math.max(...selectedFields.map(f => f.y));
-        alignValue = (minY + maxY) / 2;
-        break;
-      case 'bottom':
-        alignValue = Math.min(...selectedFields.map(f => f.y - f.height));
-        break;
+  const handleAlignFields = useCallback((alignment: AlignmentType) => {
+    const selectedIds: Set<string> = selectedFieldIds.size > 1
+      ? selectedFieldIds
+      : (selectedFieldId ? new Set<string>([selectedFieldId]) : new Set<string>());
+    const newFields = alignFields(fields, selectedIds, alignment);
+    if (newFields !== fields) {
+      setFields(newFields);
+      addToHistory(newFields);
     }
-
-    const newFields = fields.map(f => {
-      if (!selectedIds.has(f.id)) return f;
-
-      switch (alignment) {
-        case 'left':
-          return { ...f, x: alignValue };
-        case 'center':
-          return { ...f, x: alignValue - f.width / 2 };
-        case 'right':
-          return { ...f, x: alignValue - f.width };
-        case 'top':
-          return { ...f, y: alignValue };
-        case 'middle':
-          return { ...f, y: alignValue + f.height / 2 };
-        case 'bottom':
-          return { ...f, y: alignValue + f.height };
-        default:
-          return f;
-      }
-    });
-
-    setFields(newFields);
-    addToHistory(newFields);
   }, [fields, selectedFieldId, selectedFieldIds, addToHistory]);
+
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -761,66 +723,10 @@ export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
     }
   }, [file, fields, flattenForm]);
 
-  const formatSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   const isProcessing = status === 'processing';
   const selectedField = fields.find(f => f.id === selectedFieldId);
   const currentPageFields = fields.filter(f => f.pageNumber === currentPage);
 
-  // Tool buttons
-  const tools = [
-    { type: 'select' as const, icon: '↖', labelKey: 'selectTool' },
-    { type: 'text' as const, icon: '📝', labelKey: 'textFieldTool' },
-    { type: 'checkbox' as const, icon: '☑', labelKey: 'checkboxTool' },
-    { type: 'dropdown' as const, icon: '▼', labelKey: 'dropdownTool' },
-    { type: 'radio' as const, icon: '◉', labelKey: 'radioTool' },
-    { type: 'button' as const, icon: '🔘', labelKey: 'buttonTool' },
-    { type: 'signature' as const, icon: '✍', labelKey: 'signatureTool' },
-    { type: 'date' as const, icon: '📅', labelKey: 'dateTool' },
-    { type: 'listbox' as const, icon: '📋', labelKey: 'listboxTool' },
-  ];
-
-  // Get field style for overlay
-  const getFieldStyle = (field: VisualField): React.CSSProperties => {
-    const pdfHeight = pageSize.height / scale;
-    const screenY = (pdfHeight - field.y) * scale;
-
-    return {
-      position: 'absolute',
-      left: field.x * scale,
-      top: screenY - (field.height * scale),
-      width: field.width * scale,
-      height: field.height * scale,
-      border: field.id === selectedFieldId ? '2px solid #3b82f6' : '2px dashed #6b7280',
-      backgroundColor: field.id === selectedFieldId ? 'rgba(59, 130, 246, 0.1)' : 'rgba(107, 114, 128, 0.1)',
-      cursor: currentTool === 'select' ? 'move' : 'default',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '10px',
-      color: '#374151',
-      userSelect: 'none',
-    };
-  };
-
-  // Get field icon
-  const getFieldIcon = (type: FieldType) => {
-    switch (type) {
-      case 'text': return '📝';
-      case 'checkbox': return '☑';
-      case 'dropdown': return '▼';
-      case 'radio': return '◉';
-      case 'button': return '🔘';
-      case 'signature': return '✍';
-      case 'date': return '📅';
-      case 'listbox': return '📋';
-      default: return '📄';
-    }
-  };
 
   return (
     <div className={`space-y-6 ${className}`.trim()}>
@@ -1073,7 +979,7 @@ export function FormCreatorTool({ className = '' }: FormCreatorToolProps) {
                   {currentPageFields.map(field => (
                     <div
                       key={field.id}
-                      style={getFieldStyle(field)}
+                      style={getFieldStyle(field, pageSize, scale, selectedFieldId, currentTool)}
                       onClick={(e) => handleFieldClick(e, field.id)}
                       onMouseDown={(e) => handleFieldMouseDown(e, field.id)}
                     >
