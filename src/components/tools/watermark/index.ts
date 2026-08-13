@@ -1,1 +1,2 @@
-export { WatermarkTool, type WatermarkToolProps } from './WatermarkTool';
+export { WatermarkTool } from './WatermarkTool';
+export * from './types';
