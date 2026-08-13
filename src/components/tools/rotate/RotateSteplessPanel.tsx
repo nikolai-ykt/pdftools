@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ProcessingStatus } from '../ProcessingProgress';
+import { ProcessingStatus } from '@/components/tools/ProcessingProgress';
 import { normalizeInputAngle } from './types';
 
 export interface RotateSteplessPanelProps {
